@@ -1,0 +1,195 @@
+---
+title: "Global Population Growth Analysis (1950-Present)"
+author: "Rylie Douglas"
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"
+output: 
+bookdown::html_document2:
+    keep_md:
+    theme: cosmo
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 10,
+  fig.height = 6,
+  dpi = 300
+)
+```
+
+# Section 1: Loading Libraries {.tabset .tabset-fade}
+
+Libraries added: tidyverse, knitr, scales, kableExtra.
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(scales)
+library(kableExtra)
+```
+
+# Section 2: Research Question {.tabset .tabset-fade}
+
+This analysis aims to investigate global population trends from 1950 to the present, with a particular focus on comparing growth patterns among major nations. Specifically, we will examine how population trajectories have evolved in selected countries and analyze their relative growth rates over this extended period.
+
+# Section 3: Data Set Introduction {.tabset .tabset-fade}
+
+This analysis uses population data from [Our World in Data](https://ourworldindata.org/population-growth), which provides comprehensive historical population statistics. The dataset enables us to examine long-term demographic changes and growth patterns across nations since 1950.
+
+Our analysis focuses on the following variables:
+
+* country: Name of the nation or region. Character variable representing each country's identity.
+
+* year: Year of observation. Numeric variable ranging from 1950 to present.
+
+* population: Total population count for each country. Numeric variable measuring total inhabitants.
+
+* growth_rate. Annual population growth rate. Calculated as percentage change from previous year.
+
+* pop_index: Population index relative to base year. Set to 100 for 1950, showing relative growth.
+
+```{r load-data}
+# Read and prepare the data
+population_data <- read_csv("~/Desktop/ETO5513/Data/population_subset.csv") %>%
+  rename(
+    country = Entity,
+    year = Year,
+    population = `Population - Sex: all - Age: all - Variant: estimates`
+  ) %>%
+  # Create additional variables
+  group_by(country) %>%
+  arrange(year) %>%
+  mutate(
+    growth_rate = (population - lag(population)) / lag(population) * 100,
+    pop_index = (population / first(population)) * 100
+  ) %>%
+  ungroup() %>%
+  select(country, year, population, growth_rate, pop_index)
+
+# Display variable information
+tibble(
+  Variable = names(population_data),
+  Description = c(
+    "Country or region name",
+    "Year of observation",
+    "Total population count",
+    "Annual growth rate (%)",
+    "Population index (base year = 100)"
+  )
+) %>%
+  kable(
+    caption = "Variables in the Analysis Dataset",
+    align = c("l", "l")
+  ) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE
+  )
+```
+
+# Section 4: Data Set Description {.tabset .tabset-fade}
+
+```{r data-description}
+# Calculate dimensions
+n_vars <- ncol(population_data)
+n_obs <- nrow(population_data)
+```
+
+Our dataset contains `r n_vars` variables and `r n_obs` observations, providing a complete overview of population trends from 1950 to present.
+
+```{r show-data-code, echo=FALSE, fig.cap="Screenshot of code", out.width="100%", fig.align="center"}
+knitr::include_graphics("Images/data_structure_screenshot.png")
+```
+
+Below is the structure of our dataset showing the first two rows:
+```{r data-structure}
+str(head(population_data, 2))
+```
+
+# Section 5: Data Summary {.tabset .tabset-fade}
+
+```{r summary-stats}
+# Define countries to include
+selected_countries <- c(
+  "World", "China", "India", "United States", "Indonesia", 
+  "Pakistan", "Nigeria", "Brazil", "Bangladesh", "Russia"
+)
+
+# Calculate summary statistics without pipes
+selected_data <- subset(population_data, country %in% selected_countries)
+summary_stats <- aggregate(
+  cbind(population, growth_rate) ~ country, 
+  data = selected_data,
+  FUN = function(x) mean(x, na.rm = TRUE)
+)
+
+# Sort by population
+summary_stats <- summary_stats[order(-summary_stats$population),]
+
+# Create formatted table
+kable(summary_stats,
+      caption = "Mean Population and Growth Rate Statistics for Major Countries (1950-Present)",
+      col.names = c("Country", "Mean Population", "Mean Growth Rate (%)"),
+      digits = c(0, 0, 2),
+      format.args = list(big.mark = ",")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE
+  )
+```
+
+The data analysis demonstrates that China and India exhibit significantly higher mean populations compared to other nations in the sample, with both countries exceeding one billion inhabitants on average throughout the observed period (1950-present). Developing nations such as Nigeria show higher average growth rates despite having a smaller population compared to countries such as China. This variation in mean growth rates across countries shows a significant demographic pattern.
+
+# Section 6: Visualizations {.tabset .tabset-fade}
+
+```{r theme-setup}
+# Custom theme for consistent plot styling
+theme_custom <- theme(
+    plot.title = element_text(face = "bold", size = 18),
+    plot.subtitle = element_text(size = 14, color = "gray50"),
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(face = "bold", size = 12),
+    axis.text = element_text(size = 10),
+    legend.title = element_text(face = "bold"),
+    panel.border = element_rect(colour = "black", fill=NA, size=1),
+    plot.background = element_rect(fill = "white"),
+    panel.background = element_rect(fill = "white")
+)
+```
+
+### Global Population Trend
+
+```{r world-population}
+# Create world population plot
+world_data <- subset(population_data, country == "World")
+
+ggplot(data = world_data, aes(x = year, y = population/1e9)) +
+  geom_line(color = "#2E86C1", size = 1.2) +
+  geom_point(size = 2, alpha = 0.6) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "World Population Growth (1950-Present)",
+    subtitle = "Total Population in Billions",
+    x = "Year",
+    y = "Population (Billions)"
+  ) +
+  scale_x_continuous(breaks = seq(1950, 2020, by = 10)) +  # Changed to 10-year intervals
+  scale_y_continuous(labels = scales::number_format(accuracy = 0.1)) +
+  theme_custom
+```
+
+Key observations from the visualizations:
+
+* Global Population Trend:
+  * The world's total population has shown consistent upward growth since 1950
+  * The growth rate appears to be accelerating, showing a steeper increase in recent decades
+  * The global population has more than tripled over the studied period
+  
+# Section 7: Conclusion {.tabset .tabset-fade}
+
+Analysis of global population trends from 1950 to present reveals substantial demographic transitions and patterns of growth. The data demonstrates significant population expansion worldwide, with particularly notable increases observed in Asia's most populous nations. China and India have consistently maintained their positions as global demographic leaders, although their respective growth trajectories show distinct variations throughout the study period. The analysis reveals that different nations exhibit varying patterns of population growth, which can be attributed to their unique stages in the demographic transition model - a theoretical framework that explains population change through modernization. These findings contribute to our understanding of long-term demographic patterns and have significant implications for future population projections. Such insights are crucial for informing evidence-based policy decisions regarding resource allocation, urban planning, and sustainable development strategies in an increasingly interconnected global society.
