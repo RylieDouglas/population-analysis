@@ -179,7 +179,36 @@ ggplot(data = world_data, aes(x = year, y = population/1e9)) +
 
 * *The growth rate appears to be accelerating, showing a steeper increase in recent decades*
   
-  
+### Additional Population Analysis
+
+```{r top5_countries}
+# Find Top 5 countries data
+no_world_data <- subset(population_data, country != "World")
+top5_max_pop <- aggregate(population ~ country, data = no_world_data, max)
+top5_data <- head(top5_max_pop[order(-top5_max_pop$population), "country"], 5)
+
+# Filter data by the top 5
+plot_data <- subset(population_data, country %in% top5_data)
+
+# Create line graph
+ggplot(data = plot_data, aes(x = year, y = population/1e6, color = country)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2, alpha = 0.6) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Population Trends in Five Most Populated Countries from 1950 to Present",
+    x = "Year",
+    y = "Population (Millions)",
+    color = "Country"
+  ) +
+  scale_x_continuous(breaks = seq(1950, 2020, by = 10)) +
+  scale_y_continuous(labels = scales::number_format()) +
+  scale_color_brewer(palette = "Set2") +
+  theme_custom
+```
+The line graph shows the population growth in the top five most populated countries from 1950 to the present. China and India appear the most populated, with both nations exceeding 1 billion people and showing a steep increase in growth patterns. However, China's growth has begun to plateau in the recent decades. The United States, Indonesia, and Nigeria have trend lines at much lower population levels and are maintaining steady growth rates over time.
+
 # Section 7: Conclusion {.tabset .tabset-fade}
 
 This analysis of global population trends from 1950 to the present provides important insights. The data reveals consistent worldwide growth with the most significant increases between 2000-2020. However, growth rates have slowed in recent decades suggesting more sustainable patterns. Examining the world's most populous countries shows striking differences. China and India lead in total population, with steep upward growth, whereas China's growth has plateaued while India's remains steady. Other major countries like the United States and Indonesia have seen more consistent increases. While China and India have the highest averages, countries like Pakistan and Ethiopia recorded the highest rates. These differences are significant as they can help predict future changes and development needs. This study offers insights to provide strategies and policies to support the growth of the global population.
+
