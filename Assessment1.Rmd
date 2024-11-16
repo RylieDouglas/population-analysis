@@ -210,7 +210,7 @@ ggplot(data = plot_data, aes(x = year, y = population/1e6, color = country)) +
 The line graph shows the population growth in the five most populous countries from 1950 to the present. China and India appear the most populous, with both nations exceeding 1 billion people and displaying steep upward growth patterns. However, China's growth has begun to plateau in the recent decades. The United States, Indonesia, and Nigeria have trend lines at much lower levels and maintaining steady growth rates over time.
 
 ```{r top10_summary}
-# Top 10 countries data
+# Find Top 10 countries
 top10_stats <- subset(population_data, country != "World") %>%
   group_by(country) %>%
   summarise(
@@ -222,7 +222,7 @@ top10_stats <- subset(population_data, country != "World") %>%
 
 # Display kable table
 kable(top10_stats,
-      caption = "Average Population and Growth Rate of Top 10 Countries (1950-Present)",
+      caption = "Average Population & Growth Rate of Top 10 Countries from 1950-Present",
       col.names = c("Country", "Average Population", "Average Growth Rate (%)"),
       digits = c(0, 0, 2),
       row.names = FALSE,     
@@ -238,7 +238,7 @@ kable(top10_stats,
   column_spec(1, bold = TRUE)
 ```
 
-This table shows growth rates of the top 10 largest countries over our defined period. China and India have the highest population averages but they've grown at different speeds over time. On the other hand Pakistan and Ethiopia have recorded the highest average growth rates. The table helps us picture the enormity of some countries and how their populations have grown differently over time.
+This table shows growth rates of the top 10 largest countries over the defined period. China and India have the highest population averages but have grown at different speeds over time. On the other hand Pakistan and Ethiopia have recorded the highest average growth rates. The table helps us visualise how different country's populations have grown differently over time.
   
 # Section 7: Conclusion {.tabset .tabset-fade}
 
