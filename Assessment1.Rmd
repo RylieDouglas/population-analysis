@@ -179,6 +179,66 @@ ggplot(data = world_data, aes(x = year, y = population/1e9)) +
 
 * *The growth rate appears to be accelerating, showing a steeper increase in recent decades*
   
+### Additional Population Analysis
+
+```{r top5_countries}
+# Top 5 countries data
+no_world_data <- subset(population_data, country != "World")
+top5_max_pop <- aggregate(population ~ country, data = no_world_data, max)
+top5_data <- head(top5_max_pop[order(-top5_max_pop$population), "country"], 5)
+
+# Filter data
+plot_data <- subset(population_data, country %in% top5_data)
+
+# Create line graph
+ggplot(data = plot_data, aes(x = year, y = population/1e6, color = country)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 2, alpha = 0.6) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Population Trends in Five Most Populous Countries",
+    subtitle = "1950-Present",
+    x = "Year",
+    y = "Population (Millions)",
+    color = "Country"
+  ) +
+  scale_x_continuous(breaks = seq(1950, 2020, by = 10)) +
+  scale_y_continuous(labels = scales::number_format()) +
+  scale_color_brewer(palette = "Set2") +
+  theme_custom
+```
+The line graph shows the population growth in the five most populous countries from 1950 to the present. China and India appear the most populous, with both nations exceeding 1 billion people and displaying steep upward growth patterns. However, China's growth has begun to plateau in the recent decades. The United States, Indonesia, and Nigeria have trend lines at much lower levels and maintaining steady growth rates over time.
+
+```{r top10_summary}
+# Top 10 countries data
+top10_stats <- subset(population_data, country != "World") %>%
+  group_by(country) %>%
+  summarise(
+    avg_population = mean(population),
+    avg_growth = mean(growth_rate, na.rm = TRUE)
+  ) %>%
+  arrange(desc(avg_population)) %>%
+  head(10)
+
+# Display kable table
+kable(top10_stats,
+      caption = "Average Population and Growth Rate of Top 10 Countries (1950-Present)",
+      col.names = c("Country", "Average Population", "Average Growth Rate (%)"),
+      digits = c(0, 0, 2),
+      row.names = FALSE,     
+      align = c('l', 'r', 'r'),
+      format.args = list(big.mark = ",")) %>%
+  kable_styling(
+    bootstrap_options = c("striped", "hover", "bordered"),
+    full_width = FALSE,
+    position = "center"
+  ) %>%
+  row_spec(0, bold = TRUE, color = "white", background = "#2c3e50") %>%
+  row_spec(seq(1, nrow(top10_stats)), background = "#f8f9fa") %>%
+  column_spec(1, bold = TRUE)
+```
+
+This table shows growth rates of the top 10 largest countries over our defined period. China and India have the highest population averages but they've grown at different speeds over time. On the other hand Pakistan and Ethiopia have recorded the highest average growth rates. The table helps us picture the enormity of some countries and how their populations have grown differently over time.
   
 # Section 7: Conclusion {.tabset .tabset-fade}
 
