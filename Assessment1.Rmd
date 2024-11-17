@@ -41,10 +41,10 @@ This analysis investigates global population trends from 1950 to the present day
 
 The population dataset was retrieved from [Our World in Data](https://ourworldindata.org/population-growth), which provides historical population statistics. This dataset allows for the examination of long-term demographic changes and growth patterns across countries since 1950.
 
-The country variable represents the name of each nation or region as a character string. The year variable is a numeric value ranging from 1950 to the present, indicating the observation year. The population variable measures the total population count for each country as a numeric value, while the growth_rate variable calculates the annual population growth rate as a percentage change from the previous year. The pop_index variable shows the population index relative to the base year of 1950, with a value of 100 assigned to that year to indicate relative growth over time.
+The country variable represents the name of each nation or region as a character string and the year variable is a numeric value ranging from 1950 to the present, indicating the observation year. The population variable measures the total population count for each country as a numeric value, while the growth_rate variable calculates the annual population growth rate as a percentage change from the previous year. The pop_index variable shows the population index relative to the base year of 1950, with a value of 100 assigned to that year to indicate relative growth over time.
 
 ```{r load-data}
-# Read and prepare the data
+# Read in and filter the dataset
 population_data <- read_csv("~/Desktop/ETO5513/Data/population_subset.csv") %>%
   rename(
     country = Entity,
@@ -60,7 +60,7 @@ population_data <- read_csv("~/Desktop/ETO5513/Data/population_subset.csv") %>%
   ungroup() %>%
   select(country, year, population, growth_rate, pop_index)
 
-# Display variable information
+# Display variables in the dataset
 tibble(
   Variable = names(population_data),
   Description = c(
@@ -84,7 +84,7 @@ tibble(
 # Section 4: Data Set Description {.tabset .tabset-fade}
 
 ```{r data-description}
-# Calculate dimensions
+# Calculate variables and observations
 n_vars <- ncol(population_data)
 n_obs <- nrow(population_data)
 ```
@@ -103,21 +103,21 @@ str(head(population_data, 2))
 # Section 5: Data Summary {.tabset .tabset-fade}
 
 ```{r summary-stats}
-# Create decade summary for all countries
+# Summary by countries per decade
 decade_stats <- population_data
 decade_stats$decade <- floor(decade_stats$year/10) * 10
 
-# Calculate summary statistics by decade
+# Summary stats by decade
 summary_stats <- aggregate(
   cbind(population, growth_rate) ~ decade, 
   data = decade_stats,
   FUN = function(x) mean(x, na.rm = TRUE)
 )
 
-# Sort by decade
+# Order by decade
 summary_stats <- summary_stats[order(summary_stats$decade),]
 
-# Format population with commas but keep decades without commas
+# Print kable table of summary stats
 kable(summary_stats,
       caption = "Global Mean Population and Growth Rate Statistics by Decade (1950-Present)",
       col.names = c("Decade", "Mean Population", "Mean Growth Rate (%)"),
@@ -139,7 +139,7 @@ The data summary indicates that global population has experienced a steady **upw
 # Section 6: Visualizations {.tabset .tabset-fade}
 
 ```{r theme-setup}
-# Custom theme for consistent plot styling
+# Create custom theme for the plot
 theme_custom <- theme(
     plot.title = element_text(face = "bold", size = 18),
     plot.subtitle = element_text(size = 14, color = "gray50"),
